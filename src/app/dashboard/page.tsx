@@ -2,18 +2,6 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  Wallet,
-  TrendingUp,
-  Users,
-  Network,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Copy,
-  Link as LinkIcon,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface DashboardData {
@@ -29,34 +17,36 @@ interface DashboardData {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
 
-        if (!token) {
+        if (!token || !userId) {
           setError("Please login again ❌");
           return;
         }
 
         const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const response = await axios.get(
-  `${BASE_URL}/api/dashboard/${userId}`,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  }
-);
 
-        setData(response.data);
+        const res = await axios.get(
+          `${BASE_URL}/api/dashboard/${userId}`, // ✅ FIXED
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setData(res.data);
       } catch (err: any) {
         console.error("Dashboard Error:", err);
         setError(
           err?.response?.data?.message ||
-            "Failed to connect to backend ❌"
+            "Failed to load dashboard ❌"
         );
       } finally {
         setLoading(false);
@@ -69,7 +59,7 @@ const response = await axios.get(
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        Loading Dashboard...
       </div>
     );
   }
@@ -91,18 +81,30 @@ const response = await axios.get(
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatCard title="Balance" value={data.walletBalance} />
-          <StatCard title="Earnings" value={data.totalEarnings} />
-          <StatCard title="Direct" value={data.directReferrals} />
-          <StatCard title="Team" value={data.totalTeamSize} />
+          <Stat title="Wallet" value={data.walletBalance} />
+          <Stat title="Earnings" value={data.totalEarnings} />
+          <Stat title="Direct Referrals" value={data.directReferrals} />
+          <Stat title="Team Size" value={data.totalTeamSize} />
         </div>
 
         {/* Referral */}
         <ReferralCard code={data.referralCode} />
 
+        {/* Level Income */}
+        <div className="bg-white p-4 rounded-xl mt-6">
+          <h2 className="font-semibold mb-4">Level Income</h2>
+          {data.levelWiseIncome.map((lvl) => (
+            <div key={lvl.level} className="flex justify-between py-2 border-b">
+              <span>Level {lvl.level}</span>
+              <span>{lvl.amount}</span>
+            </div>
+          ))}
+        </div>
+
         {/* Transactions */}
         <div className="bg-white p-4 rounded-xl mt-6">
           <h2 className="font-semibold mb-4">Transactions</h2>
+
           {data.transactions.length === 0 ? (
             <p>No transactions</p>
           ) : (
@@ -122,7 +124,7 @@ const response = await axios.get(
   );
 }
 
-function StatCard({ title, value }: any) {
+function Stat({ title, value }: any) {
   return (
     <div className="bg-white p-4 rounded-xl shadow">
       <p className="text-sm text-gray-500">{title}</p>
@@ -132,22 +134,22 @@ function StatCard({ title, value }: any) {
 }
 
 function ReferralCard({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
   const handleCopy = () => {
-    const link = `${window.location.origin}/signup?ref=${code}`; // ✅ FIXED
+    const link = `${window.location.origin}/signup?ref=${code}`;
     navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    alert("Referral link copied!");
   };
 
   if (!code) return null;
 
   return (
-    <div className="bg-white p-4 rounded-xl flex justify-between items-center">
-      <span>{code}</span>
-      <button onClick={handleCopy} className="bg-indigo-600 text-white px-3 py-1 rounded">
-        {copied ? "Copied!" : "Copy Link"}
+    <div className="bg-white p-4 rounded-xl mt-6 flex justify-between items-center">
+      <span className="font-mono">{code}</span>
+      <button
+        onClick={handleCopy}
+        className="bg-indigo-600 text-white px-4 py-2 rounded"
+      >
+        Copy Link
       </button>
     </div>
   );
