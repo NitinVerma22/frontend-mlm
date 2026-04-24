@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+ const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
    try {
   const res = await axios.post(`${BASE_URL}/api/auth/login`, {
     email,
