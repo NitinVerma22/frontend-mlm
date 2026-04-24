@@ -1,49 +1,61 @@
 "use client";
 
-import { useState } from 'react';
-import axios from 'axios';
-import { SendHorizontal, AlertCircle, CheckCircle2 } from 'lucide-react';
-import Link from 'next/link';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { useState } from "react";
+import axios from "axios";
+import { SendHorizontal, AlertCircle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function TransferPage() {
-  const [receiverEmail, setReceiverEmail] = useState('');
-  const [amount, setAmount] = useState('');
+  const [receiverEmail, setReceiverEmail] = useState("");
+  const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL; // ✅ FIX
+
     try {
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
 
-      if (!userId) return;
+      if (!token || !userId) {
+        setMessage({ text: "User not authenticated ❌", type: "error" });
+        return;
+      }
 
-    const res = await axios.post(
-  `${BASE_URL}/api/wallet/transfer`,
-  {
-    senderId: userId,
-    receiverEmail,
-    amount: Number(amount)
-  },
+      const res = await axios.post(
+        `${BASE_URL}/api/wallet/transfer`,
+        {
+          senderId: userId,
+          receiverEmail,
+          amount: Number(amount),
+        },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      setMessage({ text: `Transfer successful! Remaining balance: ${res.data.balance}`, type: 'success' });
-      setReceiverEmail('');
-      setAmount('');
+
+      setMessage({
+        text: `Transfer successful! Remaining balance: ${res.data.balance}`,
+        type: "success",
+      });
+
+      setReceiverEmail("");
+      setAmount("");
     } catch (err: any) {
-      console.log('Transfer Error fallback', err);
-      setMessage({ text: err?.response?.data?.message || 'Mock Success: Tokens transferred securely.', type: 'success' });
-      setReceiverEmail('');
-      setAmount('');
+      console.error("Transfer Error:", err);
+
+      setMessage({
+        text: err?.response?.data?.message || "Transfer Failed ❌",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -65,44 +77,45 @@ export default function TransferPage() {
           </div>
 
           {message && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-bottom-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
-               {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
-               {message.text}
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${
+              message.type === "success"
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-red-50 text-red-700"
+            }`}>
+              {message.type === "success" ? (
+                <CheckCircle2 className="w-5 h-5" />
+              ) : (
+                <AlertCircle className="w-5 h-5" />
+              )}
+              {message.text}
             </div>
           )}
 
           <form onSubmit={handleTransfer} className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Recipient Email or Code</label>
-              <input 
-                type="text" 
-                required
-                placeholder="user@example.com"
-                value={receiverEmail}
-                onChange={(e) => setReceiverEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-all placeholder:text-gray-400"
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Recipient Email"
+              value={receiverEmail}
+              onChange={(e) => setReceiverEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 border rounded-xl"
+            />
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Amount to send</label>
-              <input 
-                type="number" 
-                required
-                min="1"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-all placeholder:text-gray-400"
-              />
-            </div>
+            <input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              className="w-full px-4 py-3 border rounded-xl"
+            />
 
-            <button 
+            <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-xl mt-4 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full bg-indigo-600 text-white py-3 rounded-xl"
             >
-              {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Send Securely'}
+              {loading ? "Sending..." : "Send Tokens"}
             </button>
           </form>
         </div>
