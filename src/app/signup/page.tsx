@@ -20,7 +20,7 @@ export default function Signup() {
     setError('');
 
     try {
-      await axios.post('http://localhost:5000/api/auth/register', {
+     axios.post(`${BASE_URL}/api/auth/register`, data), {
         name,
         email,
         password,
