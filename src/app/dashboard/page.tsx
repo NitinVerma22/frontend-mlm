@@ -28,11 +28,19 @@ export default function Dashboard() {
 
         if (!userId) return; // ProtectedRoute will handle missing token
 
-        const response = await axios.get(`http://localhost:5000/api/dashboard/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+
+
+        const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const response = await axios.get(
+  `${BASE_URL}/api/dashboard/${userId}`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }
+);
+      
         setData(response.data);
       } catch (err: any) {
         console.error("Failed to fetch data:", err);
