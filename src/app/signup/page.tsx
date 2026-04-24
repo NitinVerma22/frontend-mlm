@@ -18,7 +18,7 @@ export default function Signup() {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+ const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
     try {
      axios.post(`${BASE_URL}/api/auth/register`, data), {
         name,
