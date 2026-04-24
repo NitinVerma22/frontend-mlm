@@ -23,13 +23,13 @@ export default function TransferPage() {
 
       if (!userId) return;
 
-      const res = await axios.post(
-        'http://localhost:5000/api/wallet/transfer', 
-        { 
-          senderId: userId,
-          receiverEmail,
-          amount: Number(amount)
-        },
+    const res = await axios.post(
+  `${BASE_URL}/api/wallet/transfer`,
+  {
+    senderId: userId,
+    receiverEmail,
+    amount: Number(amount)
+  },
         {
           headers: {
             Authorization: `Bearer ${token}`
