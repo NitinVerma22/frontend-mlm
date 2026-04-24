@@ -16,11 +16,11 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
-        email,
-        password
-      });
+   try {
+  const res = await axios.post(`${BASE_URL}/api/auth/login`, {
+    email,
+    password
+  });
 
       // Save JWT token and userId
       localStorage.setItem('token', res.data.token);
