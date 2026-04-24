@@ -42,12 +42,14 @@ export default function Dashboard() {
         }
 
         const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
-        const response = await axios.get(`${BASE_URL}/api/dashboard`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+const response = await axios.get(
+  `${BASE_URL}/api/dashboard/${userId}`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }
+);
 
         setData(response.data);
       } catch (err: any) {
